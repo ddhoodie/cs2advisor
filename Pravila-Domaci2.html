@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rules — CS:GO Economy Advisor</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --font-sans: 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'Consolas', 'Cascadia Code', 'Fira Mono', monospace;
+
+    --bg:      #ffffff;
+    --bg2:     #f6f5f2;
+    --bg3:     #eeecea;
+    --border:  rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --text:    #1a1a18;
+    --text2:   #5a5955;
+    --text3:   #9a9892;
+
+    --kw:      #185fa5;
+    --act:     #0f6e56;
+    --act-bg:  #e1f5ee;
+    --cond-bg: #f0f4fa;
+
+    --badge-t-bg:   #faece7; --badge-t-fg:   #7a2a10;
+    --badge-ct-bg:  #e6f1fb; --badge-ct-fg:  #0d4a8a;
+    --badge-buy-bg: #e1f5ee; --badge-buy-fg: #0f6e56;
+    --badge-eco-bg: #eeedfe; --badge-eco-fg: #4035a0;
+    --badge-hi-bg:  #fcebeb; --badge-hi-fg:  #8a2020;
+    --badge-mid-bg: #faeeda; --badge-mid-fg: #7a4010;
+    --badge-lo-bg:  #f1efe8; --badge-lo-fg:  #50504a;
+    --badge-tmpl-bg:#e8f4e8; --badge-tmpl-fg:#1a5c1a;
+
+    --chain: #d1cfc8;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:      #1c1c1a;
+      --bg2:     #242422;
+      --bg3:     #2c2c2a;
+      --border:  rgba(255,255,255,0.09);
+      --border2: rgba(255,255,255,0.16);
+      --text:    #e8e6de;
+      --text2:   #9a9890;
+      --text3:   #5e5e58;
+
+      --kw:      #85b7eb;
+      --act:     #5dcaa5;
+      --act-bg:  #04342c;
+      --cond-bg: #1a2230;
+
+      --badge-t-bg:   #4a1b0c; --badge-t-fg:   #f0997b;
+      --badge-ct-bg:  #042c53; --badge-ct-fg:  #85b7eb;
+      --badge-buy-bg: #04342c; --badge-buy-fg: #5dcaa5;
+      --badge-eco-bg: #26215c; --badge-eco-fg: #afa9ec;
+      --badge-hi-bg:  #501313; --badge-hi-fg:  #f09595;
+      --badge-mid-bg: #412402; --badge-mid-fg: #fac775;
+      --badge-lo-bg:  #2c2c2a; --badge-lo-fg:  #888780;
+      --badge-tmpl-bg:#0a2e0a; --badge-tmpl-fg:#7ec87e;
+
+      --chain: #3a3a38;
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 2rem 1.5rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .doc-header {
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border2);
+  }
+  .doc-header h1 {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    margin-bottom: 4px;
+  }
+  .doc-header p {
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .doc-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .meta-pill {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: var(--bg2);
+    border: 0.5px solid var(--border2);
+    color: var(--text2);
+    font-weight: 500;
+  }
+
+  /* ── Template callout ──────────────────────────────── */
+  .template-callout {
+    background: var(--badge-tmpl-bg);
+    border: 0.5px solid var(--badge-tmpl-fg);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 2.5rem;
+  }
+  .template-callout h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--badge-tmpl-fg);
+    margin-bottom: 10px;
+  }
+  .template-callout p {
+    font-size: 12.5px;
+    color: var(--text2);
+    margin-bottom: 6px;
+    line-height: 1.6;
+  }
+  .template-callout .tmpl-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    font-size: 12.5px;
+  }
+  .tmpl-tag {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--badge-tmpl-bg);
+    border: 0.5px solid var(--badge-tmpl-fg);
+    color: var(--badge-tmpl-fg);
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .tmpl-code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 6px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+  .tmpl-code .kw { color: var(--kw); font-weight: 600; }
+  .tmpl-code .aval { color: var(--act); font-weight: 600; }
+
+  /* ── Facts block ─────────────────────────────────── */
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 2.5rem;
+  }
+  .facts-card {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .facts-card h3 {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+  .fact-row {
+    display: flex;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.8;
+    color: var(--text2);
+  }
+  .fact-name { color: var(--text); font-weight: 500; }
+  .fact-type { color: var(--text3); font-size: 10.5px; }
+  .fact-derived { opacity: 0.7; font-style: italic; }
+
+  .const-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .const-item {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    padding: 4px 8px;
+    background: var(--bg3);
+    border-radius: 5px;
+    color: var(--text2);
+  }
+  .const-item .cname { color: var(--text); font-weight: 500; }
+
+  /* ── Section ─────────────────────────────────────── */
+  .section { margin-bottom: 3rem; }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 0.5px solid var(--border2);
+    flex-wrap: wrap;
+  }
+  .group-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 9px;
+    background: var(--bg3);
+    border: 0.5px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text);
+    letter-spacing: 0.04em;
+  }
+  .section-title { font-size: 15px; font-weight: 500; }
+  .section-note {
+    font-size: 12px;
+    color: var(--text2);
+    padding: 8px 12px;
+    background: var(--bg2);
+    border-left: 2px solid var(--border2);
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 14px;
+  }
+  .tmpl-inline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 3px;
+    background: var(--badge-tmpl-bg);
+    border: 0.5px solid var(--badge-tmpl-fg);
+    color: var(--badge-tmpl-fg);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-left: 4px;
+  }
+
+  /* ── Rule card ───────────────────────────────────── */
+  .rule {
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .rule-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 14px;
+    background: var(--bg2);
+    border-bottom: 0.5px solid var(--border);
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .rule-id-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .rule-id {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text3);
+  }
+  .rule-name {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .b-t    { background: var(--badge-t-bg);    color: var(--badge-t-fg); }
+  .b-ct   { background: var(--badge-ct-bg);   color: var(--badge-ct-fg); }
+  .b-buy  { background: var(--badge-buy-bg);  color: var(--badge-buy-fg); }
+  .b-eco  { background: var(--badge-eco-bg);  color: var(--badge-eco-fg); }
+  .b-hi   { background: var(--badge-hi-bg);   color: var(--badge-hi-fg); }
+  .b-mid  { background: var(--badge-mid-bg);  color: var(--badge-mid-fg); }
+  .b-lo   { background: var(--badge-lo-bg);   color: var(--badge-lo-fg); }
+  .b-tmpl { background: var(--badge-tmpl-bg); color: var(--badge-tmpl-fg); }
+
+  .rule-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  @media (max-width: 600px) {
+    .rule-body { grid-template-columns: 1fr; }
+    .rule-act { border-top: 0.5px solid var(--border); border-left: none !important; }
+  }
+
+  .rule-cond, .rule-act {
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.9;
+  }
+  .rule-act { border-left: 0.5px solid var(--border); background: var(--act-bg); }
+
+  .blabel {
+    font-family: var(--font-sans);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    display: block;
+    margin-bottom: 5px;
+  }
+  .kw    { color: var(--kw); font-weight: 600; }
+  .cval  { color: var(--text2); }
+  .aval  { color: var(--act); font-weight: 600; }
+  .comment { color: var(--text3); font-style: italic; font-size: 11px; }
+
+  .precond {
+    font-size: 11.5px;
+    font-family: var(--font-mono);
+    color: var(--text3);
+    background: var(--bg3);
+    padding: 5px 14px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .precond span { color: var(--text2); }
+
+  /* ── Chain diagram ───────────────────────────────── */
+  .chain-diagram {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 3rem;
+    overflow-x: auto;
+  }
+  .chain-diagram h3 {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .chain-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .cnode {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border: 0.5px solid var(--border2);
+    border-radius: 5px;
+    background: var(--bg);
+    white-space: nowrap;
+  }
+  .cnode.derived {
+    background: var(--act-bg);
+    border-color: var(--act);
+    color: var(--act);
+  }
+  .cnode.final {
+    background: var(--badge-hi-bg);
+    border-color: var(--badge-hi-fg);
+    color: var(--badge-hi-fg);
+    font-weight: 600;
+  }
+  .cnode.tmpl-node {
+    background: var(--badge-tmpl-bg);
+    border-color: var(--badge-tmpl-fg);
+    color: var(--badge-tmpl-fg);
+  }
+  .carr { color: var(--text3); font-size: 14px; font-weight: 300; }
+
+  /* ── Priority table ──────────────────────────────── */
+  .prio-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-bottom: 2.5rem;
+  }
+  .prio-table th {
+    text-align: left;
+    padding: 7px 12px;
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 0.5px solid var(--border2);
+  }
+  .prio-table td {
+    padding: 8px 12px;
+    border-bottom: 0.5px solid var(--border);
+    vertical-align: top;
+    color: var(--text2);
+  }
+  .prio-table td:first-child {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .prio-table tr:hover td { background: var(--bg2); }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ══════════════════════════════════════════════════ -->
+<div class="doc-header">
+  <h1>Rules — CS:GO Economy Advisor</h1>
+  <p>Formalna specifikacija pravila kupovine po rundama, zasnovana na forward chaining inferenciji.</p>
+  <div class="doc-meta">
+    <span class="meta-pill">10 grupa pravila</span>
+    <span class="meta-pill">38 pravila</span>
+    <span class="meta-pill">Forward Chaining</span>
+    <span class="meta-pill">Ulančavanje stanja</span>
+    <span class="meta-pill">Prioriteti</span>
+  </div>
+</div>
+
+<!-- ═══ TEMPLATE CALLOUT ════════════════════════════════════════ -->
+<div class="template-callout">
+  <h3>TEMPLATES</h3>
+
+  <div class="tmpl-item">
+    <span class="tmpl-tag">TMPL-1</span>
+    <div>
+      <strong>Grupa B — Round type decision (6 pravila → 1 template, 6 instanci)</strong><br>
+      <span style="color:var(--text3);font-size:12px;">R-B01, R-B02, R-B03, R-B04, R-B05, R-B06 su identični po obliku — razlikuju se samo u <code>side</code>, <code>threshold</code>, <code>count_op</code> i <code>round_type</code>.</span>
+      <div class="tmpl-code">
+<span class="kw">Template</span> ROUND_TYPE_DECISION(side, threshold, count_op, n, result_type)<br>
+<span class="kw">when</span> round.type == UNDEFINED<br>
+  <span class="kw">AND</span> player.side == {side}<br>
+  <span class="kw">AND</span> team.players_above_threshold({threshold}) {count_op} {n}<br>
+<span class="kw">then</span> <span class="aval">round.type ← {result_type}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tmpl-item">
+    <span class="tmpl-tag">TMPL-2</span>
+    <div>
+      <strong>Grupa C — ECO budget (R-C01 + R-C02 → 1 template, 2 instance)</strong><br>
+      <span style="color:var(--text3);font-size:12px;">Isti obrazac: ECO runda + strana + prag. Razlikuju se samo <code>side</code> i <code>threshold</code>.</span>
+      <div class="tmpl-code">
+<span class="kw">Template</span> ECO_BUDGET(side, threshold)<br>
+<span class="kw">when</span> round.type == ECO <span class="kw">AND</span> player.side == {side}<br>
+<span class="kw">then</span> <span class="aval">spend_budget ← player.money − max(0, {threshold} − player.loss_bonus)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tmpl-item">
+    <span class="tmpl-tag">TMPL-3</span>
+    <div>
+      <strong>Grupa G — AWP availability block (R-G01 + R-G02 su sličnog oblika)</strong><br>
+      <span style="color:var(--text3);font-size:12px;">Oba provjeravaju stranu i broj AWP-ova u timu, samo se prag broja razlikuje.</span>
+      <div class="tmpl-code">
+<span class="kw">Template</span> AWP_BLOCK(side, awp_count_op, n)<br>
+<span class="kw">when</span> player.side == {side}<br>
+  <span class="kw">AND</span> team.awp_count {awp_count_op} {n}<br>
+<span class="kw">then</span> <span class="aval">AWP.available ← false</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FACTS ════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">FACTS</span>
+    <span class="section-title">Radna memorija — inicijalne činjenice</span>
+  </div>
+
+  <div class="facts-grid">
+
+    <div class="facts-card">
+      <h3>Igrač</h3>
+      <div class="fact-row"><span class="fact-name">player.money</span><span class="fact-type">integer [$]</span></div>
+      <div class="fact-row"><span class="fact-name">player.side</span><span class="fact-type">{T, CT}</span></div>
+      <div class="fact-row"><span class="fact-name">player.loss_bonus</span><span class="fact-type">integer [$]</span></div>
+      <div class="fact-row"><span class="fact-name">player.playstyle</span><span class="fact-type">{aggressive, sniper, utility}</span></div>
+      <div class="fact-row"><span class="fact-name">player.confidence</span><span class="fact-type">integer [0–100]</span></div>
+      <div class="fact-row"><span class="fact-name">player.is_utility_player</span><span class="fact-type">boolean</span></div>
+      <div class="fact-row"><span class="fact-name">player.faceit_level</span><span class="fact-type">integer [1–10]</span></div>
+      <div class="fact-row"><span class="fact-name">player.faceit_elo</span><span class="fact-type">integer</span></div>
+    </div>
+
+    <div class="facts-card">
+      <h3>Runda &amp; Tim</h3>
+      <div class="fact-row"><span class="fact-name">round.is_first_of_half</span><span class="fact-type">boolean</span></div>
+      <div class="fact-row"><span class="fact-name">round.is_last_of_half</span><span class="fact-type">boolean</span></div>
+      <div class="fact-row"><span class="fact-name">round.is_second_of_half</span><span class="fact-type">boolean</span></div>
+      <div class="fact-row"><span class="fact-name">opponent.rounds_to_win</span><span class="fact-type">integer</span></div>
+      <div class="fact-row"><span class="fact-name">team.players_above_threshold(n)</span><span class="fact-type">count → integer</span></div>
+      <div class="fact-row"><span class="fact-name">team.defuse_kits_count</span><span class="fact-type">integer</span></div>
+      <div class="fact-row"><span class="fact-name">team.awp_count</span><span class="fact-type">integer</span></div>
+    </div>
+
+    <div class="facts-card">
+      <h3>Izvedene činjenice (insert tokom inferencije)</h3>
+      <div class="fact-row fact-derived"><span class="fact-name">round.type</span><span class="fact-type">{UNDEFINED → BUY | ECO}</span></div>
+      <div class="fact-row fact-derived"><span class="fact-name">spend_budget</span><span class="fact-type">integer [$]</span></div>
+      <div class="fact-row fact-derived"><span class="fact-name">weapon_budget</span><span class="fact-type">integer [$]</span></div>
+      <div class="fact-row fact-derived"><span class="fact-name">purchase.armor</span><span class="fact-type">{NONE, KEVLAR, FULL}</span></div>
+      <div class="fact-row fact-derived"><span class="fact-name">purchase.defuse_kit</span><span class="fact-type">{MANDATORY, false}</span></div>
+      <div class="fact-row fact-derived"><span class="fact-name">purchase.weapon</span><span class="fact-type">WeaponType | UNDEFINED</span></div>
+      <div class="fact-row fact-derived"><span class="fact-name">weapon_category_restriction</span><span class="fact-type">{NONE, PISTOL_ONLY}</span></div>
+      <div class="fact-row fact-derived"><span class="fact-name">w.available</span><span class="fact-type">boolean (za svako oružje w)</span></div>
+    </div>
+
+    <div class="facts-card">
+      <h3>Konstante</h3>
+      <div class="const-grid">
+        <div class="const-item"><span class="cname">THRESHOLD.T</span> = 3700</div>
+        <div class="const-item"><span class="cname">THRESHOLD.CT</span> = 3900</div>
+        <div class="const-item"><span class="cname">ECO_ARMOR.T</span> = 2050</div>
+        <div class="const-item"><span class="cname">ECO_ARMOR.CT</span> = 1900</div>
+        <div class="const-item"><span class="cname">KEVLAR</span> = 650</div>
+        <div class="const-item"><span class="cname">FULL_ARMOR</span> = 1000</div>
+        <div class="const-item"><span class="cname">DEFUSE_KIT</span> = 400</div>
+        <div class="const-item"><span class="cname">AWP</span> = 4750</div>
+        <div class="const-item"><span class="cname">AK47</span> = 2700</div>
+        <div class="const-item"><span class="cname">M4A4</span> = 3100</div>
+        <div class="const-item"><span class="cname">M4A1-S</span> = 2900</div>
+        <div class="const-item"><span class="cname">GALIL</span> = 1800</div>
+        <div class="const-item"><span class="cname">FAMAS</span> = 2050</div>
+        <div class="const-item"><span class="cname">SSG-08</span> = 1700</div>
+        <div class="const-item"><span class="cname">DEAGLE</span> = 700</div>
+        <div class="const-item"><span class="cname">FIVE-SEVEN</span> = 500</div>
+        <div class="const-item"><span class="cname">TEC-9</span> = 500</div>
+        <div class="const-item"><span class="cname">MAC-10</span> = 1050</div>
+        <div class="const-item"><span class="cname">MP9</span> = 1250</div>
+        <div class="const-item"><span class="cname">MP7</span> = 1500</div>
+        <div class="const-item"><span class="cname">P250</span> = 300</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priority table -->
+  <table class="prio-table">
+    <thead>
+      <tr>
+        <th>Grupa</th>
+        <th>Opis</th>
+        <th>Prioritet</th>
+        <th>Pre-uslov grupe</th>
+        <th>Template</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>A</td><td>Specijalne runde — tip runde</td><td><span class="badge b-hi">Visok</span></td><td>—</td><td>—</td></tr>
+      <tr><td>B</td><td>Standardne runde — tip runde</td><td><span class="badge b-mid">Normalan</span></td><td>round.type == UNDEFINED</td><td><span class="badge b-tmpl">TMPL-1</span></td></tr>
+      <tr><td>C</td><td>ECO: budžet i oklop</td><td><span class="badge b-eco">ECO</span></td><td>round.type == ECO</td><td><span class="badge b-tmpl">TMPL-2</span></td></tr>
+      <tr><td>D</td><td>BUY: oklop</td><td><span class="badge b-buy">BUY</span></td><td>round.type == BUY</td><td>—</td></tr>
+      <tr><td>E</td><td>BUY: timska usklađenost (CT)</td><td><span class="badge b-buy">BUY</span> <span class="badge b-ct">CT</span></td><td>round.type == BUY ∧ side == CT</td><td>—</td></tr>
+      <tr><td>F</td><td>Filtriranje oružja po budžetu</td><td><span class="badge b-lo">Normalan</span></td><td>weapon_budget je definisan</td><td>—</td></tr>
+      <tr><td>G</td><td>AWP pravila</td><td><span class="badge b-hi">Visok</span></td><td>weapon_budget je definisan</td><td><span class="badge b-tmpl">TMPL-3</span></td></tr>
+      <tr><td>H</td><td>Deagle rank pravilo</td><td><span class="badge b-mid">Srednji</span></td><td>weapon_budget je definisan</td><td>—</td></tr>
+      <tr><td>I</td><td>Primarno oružje — BUY runda</td><td><span class="badge b-buy">BUY</span></td><td>purchase.weapon == UNDEFINED</td><td>—</td></tr>
+      <tr><td>J</td><td>Fallback — najskuplje dostupno oružje</td><td><span class="badge b-lo">Nizak (fallback)</span></td><td>purchase.weapon == UNDEFINED</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Chain diagram -->
+  <div class="chain-diagram">
+    <h3>Tok ulančavanja (forward chain)</h3>
+    <div class="chain-row">
+      <span class="cnode">R-A01 / A02 / A03</span>
+      <span class="carr">→</span>
+      <span class="cnode derived">round.type = BUY</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-D01..D03 (oklop)</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-E01..E02 (defuse kit)</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-F01 (filter)</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-G01..G06 (AWP)</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-I01..I08 (rifle/SMG)</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-J01 (fallback: najskuplje)</span>
+      <span class="carr">→</span>
+      <span class="cnode final">purchase.weapon</span>
+    </div>
+    <div class="chain-row">
+      <span class="cnode tmpl-node">TMPL-1 → R-B01..B06</span>
+      <span class="carr">→</span>
+      <span class="cnode derived">round.type = BUY/ECO</span>
+      <span class="carr">(BUY grana: isto kao gore)</span>
+    </div>
+    <div class="chain-row">
+      <span class="cnode">R-B03 / B06</span>
+      <span class="carr">→</span>
+      <span class="cnode derived">round.type = ECO</span>
+      <span class="carr">→</span>
+      <span class="cnode tmpl-node">TMPL-2 → R-C01..C02</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-C03..C05 (oklop/restrict)</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-F01..F02 (filter)</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-H01..H02 (deagle)</span>
+      <span class="carr">→</span>
+      <span class="cnode">R-J01 (fallback: najskuplje)</span>
+      <span class="carr">→</span>
+      <span class="cnode final">purchase.weapon</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA A ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA A</span>
+    <span class="section-title">Specijalne runde — određivanje tipa runde</span>
+    <div class="badges"><span class="badge b-hi">Prioritet: Visok</span></div>
+  </div>
+  <div class="section-note">
+    Pravila grupe A imaju viši prioritet od grupe B. Ako je bilo koje pravilo iz grupe A okidača, pravila grupe B se ne evaluiraju. Specijalne runde uvek rezultuju BUY rundom bez obzira na stanje tima.
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-A01</span><span class="rule-name">Prva runda poluvremena</span></div>
+      <div class="badges"><span class="badge b-hi">Prioritet: Visok</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>  <span class="cval">round.is_first_of_half == true</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← BUY</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-A02</span><span class="rule-name">Poslednja runda poluvremena</span></div>
+      <div class="badges"><span class="badge b-hi">Prioritet: Visok</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>  <span class="cval">round.is_last_of_half == true</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← BUY</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-A03</span><span class="rule-name">Protivnik na meč lopti</span></div>
+      <div class="badges"><span class="badge b-hi">Prioritet: Visok</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>  <span class="cval">opponent.rounds_to_win == 1</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← BUY</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA B ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA B</span>
+    <span class="section-title">Standardne runde — određivanje tipa runde</span>
+    <div class="badges"><span class="badge b-mid">Prioritet: Normalan</span><span class="badge b-tmpl">TMPL-1</span></div>
+  </div>
+  <div class="section-note">
+    Pre-uslov grupe: round.type == UNDEFINED (nijedno pravilo iz grupe A nije aktivirano). Funkcija team.players_above_threshold(n) broji sve igrače tima (uključujući samog igrača) kod kojih važi: money + loss_bonus ≥ n. <span class="tmpl-inline-badge">TMPL-1</span> — svih 6 pravila ove grupe su instance jednog templata parametrizovanog sa <code>(side, threshold, count_op, n, result_type)</code>.
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-B01</span><span class="rule-name">Standardna T runda — BUY (≥ 4 igrača iznad praga)</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-buy">BUY</span><span class="badge b-tmpl">TMPL-1</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>round.type == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.players_above_threshold(3700) ≥ 4</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← BUY</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-B02</span><span class="rule-name">Standardna T runda — BUY (tačno 3 igrača iznad praga)</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-buy">BUY</span><span class="badge b-tmpl">TMPL-1</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>round.type == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.players_above_threshold(3700) == 3</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← BUY</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-B03</span><span class="rule-name">Standardna T runda — ECO (≤ 2 igrača iznad praga)</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-eco">ECO</span><span class="badge b-tmpl">TMPL-1</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>round.type == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.players_above_threshold(3700) ≤ 2</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← ECO</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-B04</span><span class="rule-name">Standardna CT runda — BUY (≥ 4 igrača iznad praga)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-buy">BUY</span><span class="badge b-tmpl">TMPL-1</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>round.type == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.players_above_threshold(3900) ≥ 4</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← BUY</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-B05</span><span class="rule-name">Standardna CT runda — BUY (tačno 3 igrača iznad praga)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-buy">BUY</span><span class="badge b-tmpl">TMPL-1</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>round.type == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.players_above_threshold(3900) == 3</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← BUY</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-B06</span><span class="rule-name">Standardna CT runda — ECO (≤ 2 igrača iznad praga)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-eco">ECO</span><span class="badge b-tmpl">TMPL-1</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>round.type == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.players_above_threshold(3900) ≤ 2</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">round.type ← ECO</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA C ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA C</span>
+    <span class="section-title">ECO runda — budžet i oklop</span>
+    <div class="badges"><span class="badge b-eco">ECO</span><span class="badge b-tmpl">TMPL-2</span></div>
+  </div>
+  <div class="section-note">
+    Na ECO rundi igrač mora sačuvati dovoljno novca za sledeću rundu. Spend_budget je maksimalni iznos koji se sme potrošiti. Timska usklađenost (defuse kit) se na ECO rundi ne proverava. <span class="tmpl-inline-badge">TMPL-2</span> — R-C01 i R-C02 su instance templata sa parametrima <code>(side, threshold)</code>.
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-C01</span><span class="rule-name">ECO budžet — T strana</span></div>
+      <div class="badges"><span class="badge b-eco">ECO</span><span class="badge b-t">T strana</span><span class="badge b-tmpl">TMPL-2</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == ECO</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == T</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">spend_budget ←</span></code>
+        <code><span class="aval">  player.money −</span></code>
+        <code><span class="aval">  max(0, 3700 − player.loss_bonus)</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-C02</span><span class="rule-name">ECO budžet — CT strana</span></div>
+      <div class="badges"><span class="badge b-eco">ECO</span><span class="badge b-ct">CT strana</span><span class="badge b-tmpl">TMPL-2</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == ECO</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">spend_budget ←</span></code>
+        <code><span class="aval">  player.money −</span></code>
+        <code><span class="aval">  max(0, 3900 − player.loss_bonus)</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-C03</span><span class="rule-name">ECO oklop — T strana (spend_budget ≥ 2050)</span></div>
+      <div class="badges"><span class="badge b-eco">ECO</span><span class="badge b-t">T strana</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>spend_budget je definisan (R-C01 okidan)</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == ECO</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">spend_budget ≥ 2050</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.armor ← KEVLAR</span></code>
+        <code><span class="aval">      weapon_budget ← spend_budget − 650</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-C04</span><span class="rule-name">ECO oklop — CT strana (spend_budget ≥ 1900)</span></div>
+      <div class="badges"><span class="badge b-eco">ECO</span><span class="badge b-ct">CT strana</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>spend_budget je definisan (R-C02 okidan)</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == ECO</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">spend_budget ≥ 1900</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.armor ← KEVLAR</span></code>
+        <code><span class="aval">      weapon_budget ← spend_budget − 650</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-C05</span><span class="rule-name">ECO bez oklopa — ograničenje na pištolje</span></div>
+      <div class="badges"><span class="badge b-eco">ECO</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.armor == NONE (R-C03 i R-C04 nisu okidani)</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == ECO</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">purchase.armor == NONE</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">weapon_budget ← spend_budget</span></code>
+        <code><span class="aval">      weapon_category_restriction</span></code>
+        <code><span class="aval">        ← PISTOL_ONLY</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA D ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA D</span>
+    <span class="section-title">BUY runda — oklop</span>
+    <div class="badges"><span class="badge b-buy">BUY</span></div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-D01</span><span class="rule-name">BUY — T strana, uvek pun oklop</span></div>
+      <div class="badges"><span class="badge b-buy">BUY</span><span class="badge b-t">T strana</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == T</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.armor ← FULL</span></code>
+        <code><span class="aval">      weapon_budget ← player.money − 1000</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-D02</span><span class="rule-name">BUY — CT strana, druga runda poluvremena (pun oklop)</span></div>
+      <div class="badges"><span class="badge b-buy">BUY</span><span class="badge b-ct">CT strana</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">round.is_second_of_half == true</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.armor ← FULL</span></code>
+        <code><span class="aval">      weapon_budget ← player.money − 1000</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-D03</span><span class="rule-name">BUY — CT strana, normalna runda (samo kevlar)</span></div>
+      <div class="badges"><span class="badge b-buy">BUY</span><span class="badge b-ct">CT strana</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">round.is_second_of_half == false</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.armor ← KEVLAR</span></code>
+        <code><span class="aval">      weapon_budget ← player.money − 650</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA E ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA E</span>
+    <span class="section-title">BUY runda — timska usklađenost (samo CT)</span>
+    <div class="badges"><span class="badge b-buy">BUY</span><span class="badge b-ct">CT strana</span></div>
+  </div>
+  <div class="section-note">
+    Na ECO rundi se timska usklađenost ne proverava. R-E01 i R-E02 su međusobno isključivi.
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-E01</span><span class="rule-name">Defuse kit obavezan (0 ili 1 kit u timu)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-hi">Obavezno</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.defuse_kits_count ≤ 1</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.defuse_kit ← MANDATORY</span></code>
+        <code><span class="aval">      weapon_budget ← weapon_budget − 400</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-E02</span><span class="rule-name">Defuse kit nije potreban (≥ 2 kita u timu)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.defuse_kits_count ≥ 2</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.defuse_kit ← false</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA F ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA F</span>
+    <span class="section-title">Filtriranje oružja po budžetu</span>
+    <div class="badges"><span class="badge b-lo">Normalan</span></div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-F01</span><span class="rule-name">Eliminacija oružja skupljeg od budžeta</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">FOR EACH</span> <span class="cval">weapon w ∈</span></code>
+        <code><span class="cval">  {SSG, AK47, Galil, Famas,</span></code>
+        <code><span class="cval">   M4A4, M4A1-S, AWP, Deagle,</span></code>
+        <code><span class="cval">   FiveSeven, Tec9, Mac10,</span></code>
+        <code><span class="cval">   MP9, MP7, P250}</span></code>
+        <code><span class="kw">IF</span>  <span class="cval">w.cost &gt; weapon_budget</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">w.available ← false</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-F02</span><span class="rule-name">Bez oklopa na ECO — ograničenje na pištolje</span></div>
+      <div class="badges"><span class="badge b-eco">ECO</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>weapon_category_restriction == PISTOL_ONLY (R-C05 okidan)</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>  <span class="cval">weapon_category_restriction</span></code>
+        <code><span class="cval">      == PISTOL_ONLY</span></code>
+        <code><span class="kw">FOR EACH</span> <span class="cval">w ∉ {Deagle, FiveSeven,</span></code>
+        <code><span class="cval">            Tec9, P250}</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">w.available ← false</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA G ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA G</span>
+    <span class="section-title">AWP pravila — izbor snajperske puške</span>
+    <div class="badges"><span class="badge b-hi">Prioritet: Visok</span><span class="badge b-tmpl">TMPL-3</span></div>
+  </div>
+  <div class="section-note">
+    Pravila grupe G evaluiraju se pre svih pravila za izbor primarnog oružja (grupa I). R-G04, R-G05, R-G06 direktno postavljaju purchase.weapon, čime blokiraju sva pravila grupe I i J. <span class="tmpl-inline-badge">TMPL-3</span> — R-G01 i R-G02 su instance templata <code>AWP_BLOCK(side, awp_count_op, n)</code>.
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-G01</span><span class="rule-name">AWP nije dostupan — T strana, postoji AWP u timu</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-tmpl">TMPL-3</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.awp_count ≥ 1</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">AWP.available ← false</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-G02</span><span class="rule-name">AWP nije dostupan — CT strana, ≥ 2 AWP-a u timu</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-tmpl">TMPL-3</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.awp_count ≥ 2</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">AWP.available ← false</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-G03</span><span class="rule-name">AWP nije dostupan — CT, 1 AWP u timu, nizak confidence</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.awp_count == 1</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.confidence &lt; 70</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">AWP.available ← false</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-G04</span><span class="rule-name">AWP prioritet — T strana, tim bez AWP-a</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-hi">Prioritet</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.playstyle == SNIPER</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.awp_count == 0</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">AWP.available == true</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 4750</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← AWP</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-G05</span><span class="rule-name">AWP prioritet — CT strana, tim bez AWP-a</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-hi">Prioritet</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.playstyle == SNIPER</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.awp_count == 0</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">AWP.available == true</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 4750</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← AWP</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-G06</span><span class="rule-name">AWP prioritet — CT strana, 1 AWP u timu, visok confidence</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-hi">Prioritet</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.playstyle == SNIPER</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">team.awp_count == 1</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.confidence ≥ 70</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">AWP.available == true</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 4750</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← AWP</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA H ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA H</span>
+    <span class="section-title">Deagle pravilo — rank ograničenje</span>
+    <div class="badges"><span class="badge b-mid">Prioritet: Srednji</span></div>
+  </div>
+  <div class="section-note">
+    Deagle se kupuje isključivo kada igrač ima Faceit level 9 ili 10, ili više od 20 000 Faceit ELO poena. Za niže rangirane igrače, Deagle se eliminiše iz skupa dostupnih oružja bez obzira na budžet. Na ECO rundi bez oklopa, Deagle ostaje u skupu pistoljskih opcija samo ako je rank zadovoljen.
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-H01</span><span class="rule-name">Deagle nedostupan — rank ispod praga</span></div>
+      <div class="badges"><span class="badge b-mid">Rank pravilo</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.faceit_level &lt; 9</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.faceit_elo &lt; 20000</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">Deagle.available ← false</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-H02</span><span class="rule-name">Deagle dostupan — visok rank (level 9/10 ili ≥ 20k ELO)</span></div>
+      <div class="badges"><span class="badge b-mid">Rank pravilo</span></div>
+    </div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">player.faceit_level ≥ 9</span></code>
+        <code><span class="kw">OR</span>   <span class="cval">player.faceit_elo ≥ 20000</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 700</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">Deagle.available ← true</span></code>
+        <span class="comment">  // ostaje u skupu kandidata</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA I ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA I</span>
+    <span class="section-title">Primarno oružje — BUY runda</span>
+    <div class="badges"><span class="badge b-buy">BUY</span></div>
+  </div>
+  <div class="section-note">
+    Pre-uslov svih pravila: purchase.weapon == UNDEFINED. Pravila se evaluiraju po redosledu i zaustavljaju se prvim okidanjem. Ako je AWP izabran pravilima grupe G, cela grupa I se preskače. Galil+Smoke (R-I02) i Famas+Smoke (R-I06) imaju prioritet nad standardnom kupovinom kada je igrač utility player i budžet pada u odgovarajući opseg.
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-I01</span><span class="rule-name">T — AK47 (weapon_budget ≥ 3000)</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">AK47.available == true</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 3000</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← AK47</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-I02</span><span class="rule-name">T — Galil AR + Smoke (weapon_budget 2700–2999, utility igrač)</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 2700</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget &lt; 3000</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.is_utility_player == true</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← GALIL</span></code>
+        <code><span class="aval">      purchase.smoke ← true</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-I03</span><span class="rule-name">T — AK47 (weapon_budget 2700–2999, nije utility igrač)</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 2700</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget &lt; 3000</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.is_utility_player == false</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← AK47</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-I04</span><span class="rule-name">T — Galil AR (weapon_budget 1800–2699)</span></div>
+      <div class="badges"><span class="badge b-t">T strana</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == T</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">GALIL.available == true</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 1800</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget &lt; 2700</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← GALIL</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-I05</span><span class="rule-name">CT — M4A4 (weapon_budget ≥ 3200)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">M4A4.available == true</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 3200</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← M4A4</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-I06</span><span class="rule-name">CT — Famas + Smoke (weapon_budget 2900–3199, utility igrač)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 2900</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget &lt; 3200</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.is_utility_player == true</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← FAMAS</span></code>
+        <code><span class="aval">      purchase.smoke ← true</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-I07</span><span class="rule-name">CT — M4A1-S (weapon_budget 2900–3199, nije utility igrač)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 2900</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget &lt; 3200</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.is_utility_player == false</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← M4A1-S</span></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-I08</span><span class="rule-name">CT — Famas (weapon_budget 2050–2899)</span></div>
+      <div class="badges"><span class="badge b-ct">CT strana</span><span class="badge b-buy">BUY</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">round.type == BUY</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">player.side == CT</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">FAMAS.available == true</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget ≥ 2050</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">weapon_budget &lt; 2900</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ← FAMAS</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GRUPA J ══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-head">
+    <span class="group-code">GRUPA J</span>
+    <span class="section-title">Fallback — najskuplje dostupno oružje</span>
+    <div class="badges"><span class="badge b-lo">Prioritet: Nizak (fallback)</span></div>
+  </div>
+  <div class="section-note">
+    Pravilo J01 aktivira se jedino kada nijedno pravilo iz grupa G i I nije postavilo purchase.weapon. Iz skupa oružja koji je filtriran grupama F i H, bira se najskuplje dostupno oružje — bez obzira na stranu, playstyle ili pozicioniranje. Deagle je u skupu kandidata samo ako R-H02 nije blokiran.
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-id-name"><span class="rule-id">R-J01</span><span class="rule-name">Fallback — kupi najskuplje dostupno oružje</span></div>
+      <div class="badges"><span class="badge b-lo">Fallback</span></div>
+    </div>
+    <div class="precond">Pre-uslov: <span>purchase.weapon == UNDEFINED (nijedna prethodna grupa nije postavila oružje)</span></div>
+    <div class="rule-body">
+      <div class="rule-cond">
+        <span class="blabel">When (Uslov)</span>
+        <code><span class="kw">IF</span>   <span class="cval">purchase.weapon == UNDEFINED</span></code>
+        <code><span class="kw">AND</span>  <span class="cval">∃ w : w.available == true</span></code>
+      </div>
+      <div class="rule-act">
+        <span class="blabel">Then (Akcija)</span>
+        <code><span class="kw">THEN</span> <span class="aval">purchase.weapon ←</span></code>
+        <code><span class="aval">  most_expensive(</span></code>
+        <code><span class="aval">    {w | w.available == true}</span></code>
+        <code><span class="aval">  )</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Opšta struktura stabla -->
+  <div class="chain-diagram" style="margin-bottom:1.5rem;">
+    <h3>Opšta struktura objašnjenja (stablo)</h3>
+    <div class="chain-row">
+      <span class="cnode final">EXPLAIN(purchase.weapon = X)</span>
+      <span class="carr">←</span>
+      <span class="cnode derived">pravilo R-XYZ</span>
+    </div>
+    <div class="chain-row" style="margin-left:24px;">
+      <span class="cnode">uslov_1 = v1</span>
+      <span style="font-size:11px;color:var(--text3);">[inicijalna — STOP]</span>
+    </div>
+    <div class="chain-row" style="margin-left:24px;">
+      <span class="cnode">uslov_2 = v2</span>
+      <span style="font-size:11px;color:var(--text3);">[inicijalna — STOP]</span>
+    </div>
+    <div class="chain-row" style="margin-left:24px;">
+      <span class="cnode derived">uslov_3 = v3</span>
+      <span style="font-size:11px;color:var(--text3);">[izvedena — rekurzija]</span>
+      <span class="carr">←</span>
+      <span class="cnode derived">pravilo R-ABC</span>
+    </div>
+    <div class="chain-row" style="margin-left:56px;">
+      <span class="cnode">pod_uslov_1</span>
+      <span style="font-size:11px;color:var(--text3);">[inicijalna — STOP]</span>
+    </div>
+    <div class="chain-row" style="margin-left:56px;">
+      <span class="cnode">pod_uslov_2</span>
+      <span style="font-size:11px;color:var(--text3);">[inicijalna — STOP]</span>
+    </div>
+  </div>
+ 
+  <!-- BC-5: Konkretan primer -->
+  <div style="font-size:13px;font-weight:500;margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--border2);">
+    Primer — BC-5: <code style="font-size:12px;">EXPLAIN(purchase.weapon = AK47)</code>
+  </div>
+  <div class="section-note" style="margin-bottom:10px;">
+    Igrač T strane, BUY runda, weapon_budget = 2750. Sistem je odabrao AK47 putem R-I03. BC rekonstruiše ceo lanac zavisnosti od ulaznih podataka.
+  </div>
+ 
+  <!-- Nivo 1 -->
+  <div style="border:0.5px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:var(--bg2);border-bottom:0.5px solid var(--border);gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:var(--font-mono);font-size:11.5px;font-weight:700;color:var(--text3);">BC-5 / Nivo 1</span>
+        <span style="font-size:13px;font-weight:500;">Zašto purchase.weapon = AK47?</span>
+      </div>
+      <div class="badges"><span class="badge b-buy">BUY</span><span class="badge b-t">T strana</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+      <div style="padding:12px 16px;font-family:var(--font-mono);font-size:12px;line-height:1.9;background:var(--cond-bg);">
+        <span class="blabel">Izvedeno pravilom</span>
+        <code><span class="kw">R-I03</span> <span class="comment">// T — AK47 (2700–2999, nije utility)</span></code>
+        <code></code>
+        <code><span class="kw">Uslovi koje treba objasniti:</span></code>
+        <code>  <span class="cval">round.type == BUY</span>        <span class="comment">← izvedena</span></code>
+        <code>  <span class="cval">player.side == T</span>          <span class="comment">← inicijalna ✓</span></code>
+        <code>  <span class="cval">weapon_budget ∈ [2700,3000)</span> <span class="comment">← izvedena</span></code>
+        <code>  <span class="cval">is_utility_player == false</span> <span class="comment">← inicijalna ✓</span></code>
+      </div>
+      <div style="padding:12px 16px;font-family:var(--font-mono);font-size:12px;line-height:1.9;border-left:0.5px solid var(--border);background:var(--act-bg);">
+        <span class="blabel">Šta se objašnjava dalje</span>
+        <code><span class="aval">→ EXPLAIN(round.type = BUY)</span></code>
+        <code><span class="aval">→ EXPLAIN(weapon_budget = 2750)</span></code>
+        <code></code>
+        <code><span class="comment">// player.side i is_utility_player</span></code>
+        <code><span class="comment">// su inicijalne — nema rekurzije</span></code>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Nivo 2a -->
+  <div style="border:0.5px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;margin-left:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:var(--bg2);border-bottom:0.5px solid var(--border);gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:var(--font-mono);font-size:11.5px;font-weight:700;color:var(--text3);">BC-5 / Nivo 2a</span>
+        <span style="font-size:13px;font-weight:500;">Zašto round.type = BUY?</span>
+      </div>
+      <div class="badges"><span class="badge b-mid">Rekurzija</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+      <div style="padding:12px 16px;font-family:var(--font-mono);font-size:12px;line-height:1.9;background:var(--cond-bg);">
+        <span class="blabel">Izvedeno pravilom</span>
+        <code><span class="kw">R-B01</span> <span class="comment">// T — BUY (≥ 4 igrača iznad 3700)</span></code>
+        <code></code>
+        <code><span class="kw">Uslovi:</span></code>
+        <code>  <span class="cval">round.type == UNDEFINED</span>     <span class="comment">← pre-uslov ✓</span></code>
+        <code>  <span class="cval">player.side == T</span>             <span class="comment">← inicijalna ✓</span></code>
+        <code>  <span class="cval">players_above(3700) ≥ 4</span>     <span class="comment">← inicijalna ✓</span></code>
+        <code></code>
+        <code><span class="comment">// Nijedna A-grupa pravila</span></code>
+        <code><span class="comment">// nije aktivirana pre B-grupe</span></code>
+      </div>
+      <div style="padding:12px 16px;font-family:var(--font-mono);font-size:12px;line-height:1.9;border-left:0.5px solid var(--border);background:var(--act-bg);">
+        <span class="blabel">Svi uslovi su inicijalni</span>
+        <code><span class="aval">STOP — rekurzija završena</span></code>
+        <code></code>
+        <code><span class="comment">// player.side = T (ulaz)</span></code>
+        <code><span class="comment">// players_above(3700) = 4 (ulaz)</span></code>
+        <code><span class="comment">// round.type bio UNDEFINED (pre-uslov)</span></code>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Nivo 2b -->
+  <div style="border:0.5px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;margin-left:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:var(--bg2);border-bottom:0.5px solid var(--border);gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:var(--font-mono);font-size:11.5px;font-weight:700;color:var(--text3);">BC-5 / Nivo 2b</span>
+        <span style="font-size:13px;font-weight:500;">Zašto weapon_budget = 2750?</span>
+      </div>
+      <div class="badges"><span class="badge b-mid">Rekurzija</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+      <div style="padding:12px 16px;font-family:var(--font-mono);font-size:12px;line-height:1.9;background:var(--cond-bg);">
+        <span class="blabel">Izvedeno pravilom</span>
+        <code><span class="kw">R-D01</span> <span class="comment">// T — uvek pun oklop</span></code>
+        <code></code>
+        <code><span class="kw">Akcija koja je postavila vrednost:</span></code>
+        <code>  <span class="cval">purchase.armor ← FULL</span></code>
+        <code>  <span class="cval">weapon_budget ←</span></code>
+        <code>  <span class="cval">  player.money − 1000</span></code>
+        <code>  <span class="cval">  = 3750 − 1000 = 2750</span></code>
+      </div>
+      <div style="padding:12px 16px;font-family:var(--font-mono);font-size:12px;line-height:1.9;border-left:0.5px solid var(--border);background:var(--act-bg);">
+        <span class="blabel">Uslovi pravila R-D01</span>
+        <code><span class="aval">round.type == BUY</span>   <span class="comment">← izvedena (već objašnjena)</span></code>
+        <code><span class="aval">player.side == T</span>    <span class="comment">← inicijalna ✓</span></code>
+        <code><span class="aval">player.money = 3750</span> <span class="comment">← inicijalna ✓</span></code>
+        <code></code>
+        <code><span class="comment">// STOP — sve inicijalne ili već</span></code>
+        <code><span class="comment">// objašnjene u nivo 2a</span></code>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Konačno stablo -->
+  <div class="chain-diagram">
+    <h3>BC-5 — Kompletno stablo objašnjenja</h3>
+    <div class="chain-row">
+      <span class="cnode final">purchase.weapon = AK47</span>
+      <span class="carr">←</span>
+      <span class="cnode derived">R-I03</span>
+    </div>
+    <div class="chain-row" style="margin-left:24px;">
+      <span class="cnode derived">round.type = BUY</span>
+      <span class="carr">←</span>
+      <span class="cnode derived">R-B01</span>
+      <span class="carr">←</span>
+      <span class="cnode">player.side = T</span>
+      <span class="cnode">players_above(3700) = 4</span>
+    </div>
+    <div class="chain-row" style="margin-left:24px;">
+      <span class="cnode derived">weapon_budget = 2750</span>
+      <span class="carr">←</span>
+      <span class="cnode derived">R-D01</span>
+      <span class="carr">←</span>
+      <span class="cnode">player.money = 3750</span>
+    </div>
+    <div class="chain-row" style="margin-left:24px;">
+      <span class="cnode">player.side = T</span>
+      <span style="font-size:11px;color:var(--text3);">[inicijalna — pojavljuje se na više mjesta, samo se citira]</span>
+    </div>
+    <div class="chain-row" style="margin-left:24px;">
+      <span class="cnode">is_utility_player = false</span>
+      <span style="font-size:11px;color:var(--text3);">[inicijalna]</span>
+    </div>
+  </div>
+ 
+</div>
+
+</body>
+</html>
